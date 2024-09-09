@@ -1,63 +1,51 @@
 pipeline {
     agent any
 
-    environment {
-        ARM_CLIENT_ID = credentials('ARM_CLIENT_ID')
-        ARM_CLIENT_SECRET = credentials('ARM_CLIENT_SECRET')
-        ARM_TENANT_ID = credentials('ARM_TENANT_ID')
-        ARM_SUBSCRIPTION_ID = credentials('ARM_SUBSCRIPTION_ID')
-
-        TF_PLUGIN_SKIP_PROVIDER_REGISTRATION ='true'
+    parameters {
+        booleanParam(name: 'autoApprove', defaultValue: false, description: 'Automatically run apply after generating plan?')
+        choice(name: 'action', choices: ['apply', 'destroy'], description: 'Select the action to perform')
     }
+
+    environment {
+        ARM_SUBSCRIPTION_ID = credentials('ARM_SUBSCRIPTION_ID')
+        ARM_CLIENT_ID       = credentials('ARM_CLIENT_ID')
+        ARM_CLIENT_SECRET   = credentials('ARM_CLIENT_SECRET')
+        ARM_TENANT_ID       = credentials('ARM_TENANT_ID')
+    }
+
     stages {
-       stage('Checkout') {
+        stage('Checkout') {
             steps {
-                    git branch: 'master', url: 'https://github.com/bindu987654321/project3.git'
-                 }
-          }
-        
-        stage('Terraform Init') {
+                git branch: 'master', url: 'https://github.com/bindu987654321/Terraform-project1.git'
+            }
+        }
+        stage('Terraform init') {
             steps {
                 sh 'terraform init'
             }
         }
-
-        stage('Terraform Plan') {
+        stage('Plan') {
             steps {
-                script {
-                    sh 'terraform plan -out=tfplan'
-                }
+                sh 'terraform plan -out tfplan'
+                sh 'terraform show -no-color tfplan > tfplan.txt'
             }
         }
-
-      
-        stage('Review Terraform Plan') {
+        stage('Apply / Destroy') {
             steps {
                 script {
-                    def planOutput = sh(script: 'terraform show -no-color tfplan', returnStdout: true).trim()
-                    echo "Terraform Plan Output:"
-                    echo planOutput
-                    input message: "Review the plan before proceeding",
-                          parameters: [text(name: 'Plan', description: 'Terraform plan', defaultValue: planOutput)]
-                }
-            }
-        }
+                    if (params.action == 'apply') {
+                        if (!params.autoApprove) {
+                            def plan = readFile 'tfplan.txt'
+                            input message: "Do you want to apply the plan?",
+                            parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
+                        }
 
-        stage('Apply Terraform Plan') {
-            steps {
-                script {
-                    sh 'terraform apply tfplan'
-                }
-            }
-        }
-
-        stage('Destroy Infrastructure') {
-            steps {
-                script {
-                    input message: "Are you sure you want to destroy the infrastructure?",
-                          ok: "Destroy",
-                          parameters: [choice(name: 'Confirmation', choices: 'Destroy')]
-                    sh 'terraform destroy -auto-approve'
+                        sh "terraform apply -input=false tfplan"
+                    } else if (params.action == 'destroy') {
+                        sh "terraform destroy --auto-approve"
+                    } else {
+                        error "Invalid action selected. Please choose either 'apply' or 'destroy'."
+                    }
                 }
             }
         }
