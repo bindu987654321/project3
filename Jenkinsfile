@@ -1,53 +1,63 @@
 pipeline {
     agent any
 
-    parameters {
-        booleanParam(name: 'autoApprove', defaultValue: false, description: 'Automatically run apply after generating plan?')
-        choice(name: 'action', choices: ['apply', 'destroy'], description: 'Select the action to perform')
-    }
-
     environment {
+        ARM_CLIENT_ID = credentials('ARM_CLIENT_ID')
+        ARM_CLIENT_SECRET = credentials('ARM_CLIENT_SECRET')
+        ARM_TENANT_ID = credentials('ARM_TENANT_ID')
         ARM_SUBSCRIPTION_ID = credentials('ARM_SUBSCRIPTION_ID')
-        ARM_CLIENT_ID       = credentials('ARM_CLIENT_ID')
-        ARM_CLIENT_SECRET   = credentials('ARM_CLIENT_SECRET')
-        ARM_TENANT_ID       = credentials('ARM_TENANT_ID')
 
-         TF_PLUGIN_SKIP_PROVIDER_REGISTRATION ='true'
+        TF_PLUGIN_SKIP_PROVIDER_REGISTRATION ='true'
     }
-
     stages {
-        stage('Checkout') {
+       stage('Checkout') {
             steps {
-                 git branch: 'master', url: 'https://github.com/bindu987654321/project3.git'
+                    git branch: 'master', url: 'https://github.com/bindu987654321/project3.git'
+                 }
+          }
+        
+        stage('Terraform Init') {
+            steps {
+                sh 'terraform init'
             }
         }
-        stage('Terraform init') {
-            steps {
-                sh 'terraform init -upgrade'
-            }
-        }
-        stage('Plan') {
-            steps {
-                sh 'terraform plan -out tfplan'
-                sh 'terraform show -no-color tfplan > tfplan.txt'
-            }
-        }
-        stage('Apply / Destroy') {
+
+        stage('Terraform Plan') {
             steps {
                 script {
-                    if (params.action == 'apply') {
-                        if (!params.autoApprove) {
-                            def plan = readFile 'tfplan.txt'
-                            input message: "Do you want to apply the plan?",
-                            parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
-                        }
+                    sh 'terraform plan -out=tfplan'
+                }
+            }
+        }
 
-                        sh "terraform apply -input=false tfplan"
-                    } else if (params.action == 'destroy') {
-                        sh "terraform destroy --auto-approve"
-                    } else {
-                        error "Invalid action selected. Please choose either 'apply' or 'destroy'."
-                    }
+      
+        stage('Review Terraform Plan') {
+            steps {
+                script {
+                    def planOutput = sh(script: 'terraform show -no-color tfplan', returnStdout: true).trim()
+                    echo "Terraform Plan Output:"
+                    echo planOutput
+                    input message: "Review the plan before proceeding",
+                          parameters: [text(name: 'Plan', description: 'Terraform plan', defaultValue: planOutput)]
+                }
+            }
+        }
+
+        stage('Apply Terraform Plan') {
+            steps {
+                script {
+                    sh 'terraform apply tfplan'
+                }
+            }
+        }
+
+        stage('Destroy Infrastructure') {
+            steps {
+                script {
+                    input message: "Are you sure you want to destroy the infrastructure?",
+                          ok: "Destroy",
+                          parameters: [choice(name: 'Confirmation', choices: 'Destroy')]
+                    sh 'terraform destroy -auto-approve'
                 }
             }
         }
