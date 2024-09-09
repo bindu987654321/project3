@@ -12,7 +12,7 @@ pipeline {
     stages {
        stage('Checkout') {
             steps {
-                    git branch: 'main', url: 'https://github.com/pranavkumarpk01/TERRAFORM.git'
+                    git branch: 'master', url: 'https://github.com/bindu987654321/project3.git'
                  }
           }
         
