@@ -1,5 +1,5 @@
 
-resource "azurerm_network_interface" "demonetworkinterface" {
+resource "azurerm_network_interface" "networkinterface" {
   name                = "demonic"
   location            = azurerm_resource_group.demoresourcegroup.location
   resource_group_name = azurerm_resource_group.demoresourcegroup.name
@@ -20,7 +20,7 @@ resource "azurerm_linux_virtual_machine" "demolinuxvm" {
   admin_username                  = var.username
   disable_password_authentication = true
   network_interface_ids = [
-    azurerm_network_interface.demonetworkinterface.id,
+    azurerm_network_interface.networkinterface.id,
   ]
 
   admin_ssh_key {
