@@ -1,5 +1,5 @@
 
-resource "azurerm_network_interface" "networkinterface" {
+resource "azurerm_network_interface" "demonetworkinterface" {
   name                = "demonic"
   location            = azurerm_resource_group.demoresourcegroup.location
   resource_group_name = azurerm_resource_group.demoresourcegroup.name
@@ -12,15 +12,15 @@ resource "azurerm_network_interface" "networkinterface" {
   }
 }
 
-resource "azurerm_linux_virtual_machine" "linuxvm" {
-  name                            = "linux-machine"
+resource "azurerm_linux_virtual_machine" "demolinuxvm" {
+  name                            = "demolinuxmachine"
   resource_group_name             = azurerm_resource_group.demoresourcegroup.name
   location                        = azurerm_resource_group.demoresourcegroup.location
   size                            = "Standard_D2_V2"
   admin_username                  = var.username
   disable_password_authentication = true
   network_interface_ids = [
-    azurerm_network_interface.networkinterface.id,
+    azurerm_network_interface.demonetworkinterface.id,
   ]
 
   admin_ssh_key {
@@ -41,9 +41,9 @@ resource "azurerm_linux_virtual_machine" "linuxvm" {
   }
 
   provisioner "remote-exec" {
-   inline = [
+    inline = [
       "sudo apt-get update",
-      "sudo apt-get install openjdk-17-jdk -y"
+      "sudo apt-get install openjdk-11-jdk -y"
     ]
 
     connection {
@@ -60,12 +60,11 @@ resource "azurerm_linux_virtual_machine" "linuxvm" {
 
 
 resource "null_resource" "run_ansible_playbook" {
-  depends_on = [azurerm_linux_virtual_machine.linuxvm]
+  depends_on = [azurerm_linux_virtual_machine.demolinuxvm]
 
   provisioner "local-exec" {
     command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i '${azurerm_public_ip.demopublicip.ip_address},' playbook.yml --extra-vars='ansible_ssh_user=${var.username}' --private-key='/home/weblogic/.ssh/id_rsa' --become --become-user=root"
   }
 }
-
 
 
