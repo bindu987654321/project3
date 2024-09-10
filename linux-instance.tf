@@ -65,7 +65,7 @@ resource "null_resource" "run_ansible_playbook" {
   depends_on = [azurerm_linux_virtual_machine.demolinuxvm]
 
   provisioner "local-exec" {
-    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i '${azurerm_public_ip.demopublicip.ip_address},' nginx.yml --extra-vars='ansible_ssh_user=${var.username}' --private-key='/home/weblogic/.ssh/id_rsa' --become --become-user=root"
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i '${azurerm_public_ip.demopublicip.ip_address},' playbook.yml --extra-vars='ansible_ssh_user=${var.username}' --private-key='/home/weblogic/.ssh/id_rsa' --become --become-user=root"
   }
 }
 
