@@ -16,4 +16,4 @@
     - name: Copy HTML file
       copy:
         src: /home/weblogic/index.html
-        dest: /home/bindu.pb17/index.html
+        dest: /var/www/html/index.html
