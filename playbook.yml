@@ -15,5 +15,5 @@
 
     - name: Copy HTML file
       copy:
-        src: /home/weblogic/index.html
+        src: /project3/index.html
         dest: /var/www/html/index.html
