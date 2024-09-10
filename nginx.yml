@@ -1,5 +1,5 @@
 ---
-- name: Install Nginx
+- name: Install Apache and Copy HTML File
   hosts: all
   become: yes
 
@@ -8,7 +8,12 @@
       apt:
         update_cache: yes
 
-    - name: Install Nginx
+    - name: Install Apache
       apt:
-        name: nginx
+        name: apache2
         state: present
+
+    - name: Copy HTML file
+      copy:
+        src: /home/weblogic/index.html
+        dest: /var/www/html/index.html
