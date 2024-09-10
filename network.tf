@@ -1,5 +1,5 @@
 
-resource "azurerm_virtual_network" "demovirtualnetwork" {
+resource "azurerm_virtual_network" "virtualnetwork" {
   name                = "terra-demo-vnet"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.demoresourcegroup.location
@@ -9,7 +9,7 @@ resource "azurerm_virtual_network" "demovirtualnetwork" {
 resource "azurerm_subnet" "demosubnet" {
   name                 = "subnetabc"
   resource_group_name  = azurerm_resource_group.demoresourcegroup.name
-  virtual_network_name = azurerm_virtual_network.demovirtualnetwork.name
+  virtual_network_name = azurerm_virtual_network.virtualnetwork.name
   address_prefixes     = ["10.0.0.0/24"]
 }
 
