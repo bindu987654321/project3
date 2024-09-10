@@ -43,7 +43,7 @@ resource "azurerm_linux_virtual_machine" "demolinuxvm" {
   provisioner "remote-exec" {
    inline = [
       "sudo apt-get update",
-      "sudo apt-get install openjdk-11-jdk -y"
+      "sudo apt-get install openjdk-17-jdk -y"
     ]
 
     connection {
