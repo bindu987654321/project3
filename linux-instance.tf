@@ -12,8 +12,8 @@ resource "azurerm_network_interface" "networkinterface" {
   }
 }
 
-resource "azurerm_linux_virtual_machine" "demolinuxvm" {
-  name                            = "demolinuxmachine"
+resource "azurerm_linux_virtual_machine" "linuxvm" {
+  name                            = "linux-machine"
   resource_group_name             = azurerm_resource_group.demoresourcegroup.name
   location                        = azurerm_resource_group.demoresourcegroup.location
   size                            = "Standard_D2_V2"
